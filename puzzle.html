@@ -1,272 +1,275 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <title>N-Puzzle</title>
-    <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
-    <script src="https://cdn.bootcdn.net/ajax/libs/jcanvas/21.0.1/min/jcanvas.min.js"></script>
-    <script>
+  <meta charset="UTF-8">
+  <title>N-Puzzle</title>
+  <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
+  <script src="https://cdn.bootcdn.net/ajax/libs/jcanvas/21.0.1/min/jcanvas.min.js"></script>
+  <script>
 
-        function getRandomInt(min, max) {
-            min = Math.ceil(min);
-            max = Math.floor(max);
-            return Math.floor(Math.random() * (max - min)) + min; //不含最大值，含最小值
+    function getRandomInt(min, max) {
+      min = Math.ceil(min);
+      max = Math.floor(max);
+      return Math.floor(Math.random() * (max - min)) + min; //不含最大值，含最小值
+    }
+
+    // 计算逆序数
+    let getNumberInversions = (arr) => {
+      let t = 0; //逆序数
+      for (let i = 1; i < arr.length; i++) {
+        for (let j = 0; j < i; j++) {
+          if (arr[j] > arr[i]) {
+            t++;
+          }
         }
+      }
+      return t;
+    };
 
-        // 计算逆序数
-        let getNumberInversions = (arr) => {
-            let t = 0; //逆序数
-            for (let i = 1; i < arr.length; i++) {
-                for (let j = 0; j < i; j++) {
-                    if (arr[j] > arr[i]) {
-                        t++;
-                    }
-                }
-            }
-            return t;
-        };
+    // 洗牌算法(改变了输入参数结构)
+    let knuthDurstenfeldShuffle = (arr) => {
+      console.log("Origin Arr:", arr);
 
-        // 洗牌算法(改变了输入参数结构)
-        let knuthDurstenfeldShuffle = (arr) => {
-            console.log("Origin Arr:", arr);
+      let len = arr.length;
+      while (len > 1) {
+        const randomIndex = getRandomInt(0, len - 1);
+        console.log(len, "echange: ", randomIndex, len - 1);
+        [arr[len - 1], arr[randomIndex]] = [arr[randomIndex], arr[len - 1]];
+        console.log("[0,", len, "] = ", randomIndex, "-->", arr, "逆序数:", getNumberInversions(arr));
+        --len;
+      }
+    };
 
-            let len = arr.length;
-            while (len > 1) {
-                const randomIndex = getRandomInt(0, len - 1);
-                console.log(len, "echange: ", randomIndex, len - 1);
-                [arr[len - 1], arr[randomIndex]] = [arr[randomIndex], arr[len - 1]];
-                console.log("[0,", len, "] = ", randomIndex, "-->", arr, "逆序数:", getNumberInversions(arr));
-                --len;
-            }
-        };
+    // 求逆序数判断是否有解
+    let canSolution = (arr) => {
+      return getNumberInversions(arr) % 2 === 0;
+    };
 
-        // 求逆序数判断是否有解
-        let canSolution = (arr) => {
-            return getNumberInversions(arr) % 2 === 0;
-        };
+    let constructSolvablePuzzle = (N) => {
 
-        let constructSolvablePuzzle = (N) => {
+      // 初始递增数组
+      let arr = Array.from(new Array(N * N - 1), (val, index) => index + 1);
 
-            // 初始递增数组
-            let arr = Array.from(new Array(N * N - 1), (val, index) => index + 1);
+      // 数组长度是偶数,shuffle后,数组的逆序数为奇数.因为运行了N—1次
+      // 数组长度是奇数,shuffle后,数组的逆序数为偶数
+      // 随机洗牌
+      knuthDurstenfeldShuffle(arr);
 
-            // 数组长度是偶数,shuffle后,数组的逆序数为奇数.因为运行了N—1次
-            // 数组长度是奇数,shuffle后,数组的逆序数为偶数
-            // 随机洗牌
-            knuthDurstenfeldShuffle(arr);
-
-            // 由于谜题解决的过程就是将shuffle后的数组还原成初始的递增数组。因此shuffle后的数组要具备以下特征才有解:
-            // 格子的列数N
-            //   1. N是奇数，那么shuffle后的数组逆序数必须是偶数
-            //   2. N是偶数，
-            //     2.1 如果shuffle后数组逆序数是偶数，那么初始空格行和空格目标行数差要是偶数。这里空格最终位置最后一行，所以生成的空格应该在偶数行。
-            //     2.2 如果shuffle后数组逆序数是奇数，那么初始空格行和空格目标行数差要是奇数。这里空格最终位置最后一行，所以生成的空格应该在奇数行。
+      // 由于谜题解决的过程就是将shuffle后的数组还原成初始的递增数组。因此shuffle后的数组要具备以下特征才有解:
+      // 格子的列数N
+      //   1. N是奇数，那么shuffle后的数组逆序数必须是偶数
+      //   2. N是偶数，
+      //     2.1 如果shuffle后数组逆序数是偶数，那么初始空格行和空格目标行数差要是偶数。这里空格最终位置最后一行，所以生成的空格应该在偶数行。
+      //     2.2 如果shuffle后数组逆序数是奇数，那么初始空格行和空格目标行数差要是奇数。这里空格最终位置最后一行，所以生成的空格应该在奇数行。
 
 
-            // N是奇数，那么数组长度为偶数，shuffle后，逆序数是奇数。因此需要再次交换数组元素，使其逆序数变成偶数。空格的位置可随意摆放。
-            if (N % 2 != 0) {
-                [arr[3], arr[1]] = [arr[1], arr[3]]
-                // 默认将空格放在最后一位
+      // N是奇数，那么数组长度为偶数，shuffle后，逆序数是奇数。因此需要再次交换数组元素，使其逆序数变成偶数。空格的位置可随意摆放。
+      if (N % 2 != 0) {
+        [arr[3], arr[1]] = [arr[1], arr[3]]
+        // 默认将空格放在最后一位
 
-            }
+      }
 
-            // N是偶数，数组长度是奇数(N*N-1), shuffle后，逆序数是偶数。默认空格最后一行，因此不需要改变数组逆序数。
-            //const t = getNumberInversions(arr);
+      // N是偶数，数组长度是奇数(N*N-1), shuffle后，逆序数是偶数。默认空格最后一行，因此不需要改变数组逆序数。
+      //const t = getNumberInversions(arr);
 
-            return [...arr, 'N'];
-        };
+      return [...arr, 'N'];
+    };
 
 
-        $(function () {
+    $(function () {
 
-            const W = 140;
+      const W = 140;
 
-            const [MATRIX_N, ORIGIN_POINT] = [3, {X: W / 2, Y: W / 2}];
+      const [MATRIX_N, ORIGIN_POINT] = [3, { X: W / 2, Y: W / 2 }];
 
-            let nums = constructSolvablePuzzle(MATRIX_N);
+      let nums = constructSolvablePuzzle(MATRIX_N);
 
-            let getIndex = (num) => {
-                return nums.findIndex(v => {
-                    return v === num;
-                });
-            };
-
-            let getOffset = (num) => {
-                const idx = getIndex(num);
-                const row = Number.parseInt(idx / MATRIX_N);
-                const col = idx % MATRIX_N;
-                return {R: row, C: col};
-            };
-
-            let getPoint = (num) => {
-                const offset = getOffset(num);
-                let x = ORIGIN_POINT.X + offset.C * W;
-                let y = ORIGIN_POINT.Y + offset.R * W;
-                return {X: x, Y: y};
-            };
-
-            let canExchangingToEmpty = (num) => {
-                const emptyOffset = getOffset('N');
-                const numOffset = getOffset(num);
-                console.debug("emptyOffset", emptyOffset.R, emptyOffset.C);
-                console.debug("numOffset", numOffset.R, numOffset.C);
-
-                return emptyOffset.R === numOffset.R && Math.abs(emptyOffset.C - numOffset.C) === 1 ||
-                    emptyOffset.C === numOffset.C && Math.abs(emptyOffset.R - numOffset.R) === 1;
-            };
-
-            let doExchange = (num) => {
-                if (!canExchangingToEmpty(num)) {
-                    return;
-                }
-                console.log("echange before: ", nums);
-                const emptyIdx = getIndex('N');
-                const numIdx = getIndex(num);
-                nums[emptyIdx] = num;
-                nums[numIdx] = 'N';
-                console.log("echange after: ", nums);
-
-                const nPoint = getPoint('N');
-                const numPoint = getPoint(num);
-
-                $('canvas').setLayerGroup(`gp#${num}`, {
-                    x: numPoint.X,
-                    y: numPoint.Y,
-                });
-                $('canvas').setLayerGroup("gp#N", {
-                    x: nPoint.X,
-                    y: nPoint.Y,
-                });
-                $('canvas').drawLayers({
-                    complete: function () {
-                        makeJudgment();
-                    }
-                });
-            };
-
-            let showMessage = (message) => {
-                const centerPoint = {X: W * MATRIX_N / 2, Y: W * MATRIX_N / 2};
-                $('canvas')
-                    .drawRect({
-                        layer: true,
-                        fillStyle: 'rgba(100, 210, 45, 0.9)',
-                        x: 0,
-                        y: 0,
-                        width: W * MATRIX_N,
-                        height: W * MATRIX_N,
-                        fromCenter: false
-                    })
-                    .drawText({
-                        layer: true,
-                        text: message,
-                        fontSize: 48,
-                        fontFamily: 'Verdana, sans-serif',
-                        fillStyle: '#36c',
-                        x: centerPoint.X,
-                        y: centerPoint.Y,
-                    });
-            };
-
-            let makeJudgment = () => {
-
-                const len = Math.pow(MATRIX_N, 2);
-
-                if (nums.includes('N', -1)) {
-                    let isCompleted = true;
-                    let baseNum = nums[0];
-                    for (let i = 1; i < len - 1; i++) {
-                        if (nums[i] - baseNum !== 1) {
-                            isCompleted = false;
-                            break;
-                        } else {
-                            baseNum = nums[i];
-                        }
-                    }
-                    if (isCompleted) {
-                        showMessage('Congratulations!');
-                    }
-                }
-            };
-
-            let huaRongRoad = (numbers) => {
-
-                numbers.map(v => {
-
-                    const vPoint = getPoint(v);
-
-                    $('canvas').drawRect({
-                        data: {num: v},
-                        layer: true,
-                        name: `num#${v}`,
-                        groups: [`gp#${v}`],
-                        x: vPoint.X,
-                        y: vPoint.Y,
-                        strokeStyle: 'red',
-                        strokeWidth: 1,
-                        fillStyle: () => {
-                            return v == 'N' ? '#FFF' : '#FFF';
-                        },
-                        width: W,
-                        height: W,
-                        click: (layer) => {
-                            console.log('click layer: ', layer);
-                            doExchange(layer.data.num);
-                        },
-                        touchend: (layer) => {
-                            doExchange(layer.data.num);
-                        },
-                    });
-                    if (v !== 'N') {
-                        $('canvas').drawText({
-                            layer: true,
-                            name: `label#${v}`,
-                            fillStyle: '#36c',
-                            x: vPoint.X,
-                            y: vPoint.Y,
-                            fontSize: 48,
-                            fontFamily: 'Verdana, sans-serif',
-                            text: v,
-                            groups: [`gp#${v}`],
-                        });
-                    }
-                });
-            };
-
-            let clearCanvas = () => {
-                let layerNames = [];
-
-                $('canvas').getLayers(layer => {
-                    layerNames.push(layer.name);
-                });
-                layerNames.map(name => {
-                    $('canvas').removeLayer(name);
-                });
-                $('canvas').drawLayers();
-            }
-
-            huaRongRoad(nums);
-
-            $("#reset").click(() => {
-
-                clearCanvas();
-
-                nums = constructSolvablePuzzle(MATRIX_N);
-                huaRongRoad(nums);
-            });
-
+      let getIndex = (num) => {
+        return nums.findIndex(v => {
+          return v === num;
         });
+      };
+
+      let getOffset = (num) => {
+        const idx = getIndex(num);
+        const row = Number.parseInt(idx / MATRIX_N);
+        const col = idx % MATRIX_N;
+        return { R: row, C: col };
+      };
+
+      let getPoint = (num) => {
+        const offset = getOffset(num);
+        let x = ORIGIN_POINT.X + offset.C * W;
+        let y = ORIGIN_POINT.Y + offset.R * W;
+        return { X: x, Y: y };
+      };
+
+      let canExchangingToEmpty = (num) => {
+        const emptyOffset = getOffset('N');
+        const numOffset = getOffset(num);
+        console.debug("emptyOffset", emptyOffset.R, emptyOffset.C);
+        console.debug("numOffset", numOffset.R, numOffset.C);
+
+        return emptyOffset.R === numOffset.R && Math.abs(emptyOffset.C - numOffset.C) === 1 ||
+          emptyOffset.C === numOffset.C && Math.abs(emptyOffset.R - numOffset.R) === 1;
+      };
+
+      let doExchange = (num) => {
+        if (!canExchangingToEmpty(num)) {
+          return;
+        }
+        console.log("echange before: ", nums);
+        const emptyIdx = getIndex('N');
+        const numIdx = getIndex(num);
+        nums[emptyIdx] = num;
+        nums[numIdx] = 'N';
+        console.log("echange after: ", nums);
+
+        const nPoint = getPoint('N');
+        const numPoint = getPoint(num);
+
+        $('canvas').setLayerGroup(`gp#${num}`, {
+          x: numPoint.X,
+          y: numPoint.Y,
+        });
+        $('canvas').setLayerGroup("gp#N", {
+          x: nPoint.X,
+          y: nPoint.Y,
+        });
+        $('canvas').drawLayers({
+          complete: function () {
+            makeJudgment();
+          }
+        });
+      };
+
+      let showMessage = (message) => {
+        const centerPoint = { X: W * MATRIX_N / 2, Y: W * MATRIX_N / 2 };
+        $('canvas')
+          .drawRect({
+            layer: true,
+            fillStyle: 'rgba(100, 210, 45, 0.9)',
+            x: 0,
+            y: 0,
+            width: W * MATRIX_N,
+            height: W * MATRIX_N,
+            fromCenter: false
+          })
+          .drawText({
+            layer: true,
+            text: message,
+            fontSize: 48,
+            fontFamily: 'Verdana, sans-serif',
+            fillStyle: '#36c',
+            x: centerPoint.X,
+            y: centerPoint.Y,
+          });
+      };
+
+      let makeJudgment = () => {
+
+        const len = Math.pow(MATRIX_N, 2);
+
+        if (nums.includes('N', -1)) {
+          let isCompleted = true;
+          let baseNum = nums[0];
+          for (let i = 1; i < len - 1; i++) {
+            if (nums[i] - baseNum !== 1) {
+              isCompleted = false;
+              break;
+            } else {
+              baseNum = nums[i];
+            }
+          }
+          if (isCompleted) {
+            showMessage('Congratulations!');
+          }
+        }
+      };
+
+      let huaRongRoad = (numbers) => {
+
+        numbers.map(v => {
+
+          const vPoint = getPoint(v);
+
+          $('canvas').drawRect({
+            data: { num: v },
+            layer: true,
+            name: `num#${v}`,
+            groups: [`gp#${v}`],
+            x: vPoint.X,
+            y: vPoint.Y,
+            strokeStyle: 'red',
+            strokeWidth: 1,
+            fillStyle: () => {
+              return v == 'N' ? '#FFF' : '#FFF';
+            },
+            width: W,
+            height: W,
+            click: (layer) => {
+              console.log('click layer: ', layer);
+              doExchange(layer.data.num);
+            },
+            touchend: (layer) => {
+              doExchange(layer.data.num);
+            },
+          });
+          if (v !== 'N') {
+            $('canvas').drawText({
+              layer: true,
+              name: `label#${v}`,
+              fillStyle: '#36c',
+              x: vPoint.X,
+              y: vPoint.Y,
+              fontSize: 48,
+              fontFamily: 'Verdana, sans-serif',
+              text: v,
+              groups: [`gp#${v}`],
+            });
+          }
+        });
+      };
+
+      let clearCanvas = () => {
+        let layerNames = [];
+
+        $('canvas').getLayers(layer => {
+          layerNames.push(layer.name);
+        });
+        layerNames.map(name => {
+          $('canvas').removeLayer(name);
+        });
+        $('canvas').drawLayers();
+      }
+
+      huaRongRoad(nums);
+
+      $("#reset").click(() => {
+
+        clearCanvas();
+
+        nums = constructSolvablePuzzle(MATRIX_N);
+        huaRongRoad(nums);
+      });
+
+    });
 
 
-    </script>
+  </script>
 </head>
+
 <body>
 
-<button id="reset">重新开始</button>
+  <button id="reset">重新开始</button>
 
-<div style="margin-top: 100px; text-align: center;">
+  <div style="margin-top: 100px; text-align: center;">
     <canvas width="600" height="600" style='border: 0 solid red;'></canvas>
-</div>
+  </div>
 
 
 </body>
+
 </html>
