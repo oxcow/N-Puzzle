@@ -36,35 +36,70 @@ class PuzzleGame extends React.Component {
           puzzles: Utils.getSolvablePuzzleNumbers(3),
         },
       ],
+      nullIndex: 8,
     };
   }
 
-  movePuzzle(puzzles, k, v) {
-    const nullIdx = puzzles.findIndex((v) => {
-      return v === null;
-    });
-    console.log("null index is ", nullIdx);
-    puzzles[nullIdx] = v;
+  getOffset(index) {
+    const row = Math.floor(index / 3);
+    const col = index % 3;
+    return { R: row, C: col };
+  }
+
+  canExchange(nullIndex, clickIndex) {
+    const nullOffset = this.getOffset(nullIndex);
+    const clickOffset = this.getOffset(clickIndex);
+    return nullOffset.R === clickOffset.R && Math.abs(nullOffset.C - clickOffset.C) === 1 ||
+      nullOffset.C === clickOffset.C && Math.abs(nullOffset.R - clickOffset.R) === 1;
+  }
+
+  doExchange(puzzles, k, v, nullIndex) {
+    puzzles[nullIndex] = v;
     puzzles[k] = null;
     return puzzles;
+  }
+
+  isCompleted(puzzles) {
+    if (puzzles.includes(null, -1)) {
+      let isCompleted = true;
+      let baseNumber = puzzles[0];
+      for (let i = 1; i < puzzles.length - 1; i++) {
+        if (puzzles[i] - baseNumber !== 1) {
+          isCompleted = false;
+          break;
+        } else {
+          baseNumber = puzzles[i];
+        }
+      }
+      return isCompleted;
+    }
+    return false;
   }
 
   handleClick(k, v) {
     if (v === null) {
       return;
     }
-    console.log("click : ", k, v);
+
     const history = this.state.history.slice(0, this.state.stepNumber + 1);
     const current = history[history.length - 1];
-    const puzzles = this.movePuzzle(current.puzzles.slice(), k, v);
-    console.log(puzzles);
+    const currentNullIndex = this.state.nullIndex;
 
-    // todo, checc completing.
+    if (!this.canExchange(currentNullIndex, k)) {
+      return;
+    }
+
+    const puzzles = this.doExchange(current.puzzles.slice(), k, v, currentNullIndex);
 
     this.setState({
       history: history.concat([{ puzzles: puzzles }]),
       stepNumber: history.length,
+      nullIndex: k,
     });
+
+    if (this.isCompleted(puzzles)) {
+      alert("completed");
+    }
   }
 
   render() {
