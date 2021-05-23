@@ -79,4 +79,10 @@ export default class Utils {
 
     return [...arr, null];
   }
+
+  static findIndex(array, element) {
+    return array.findIndex(v => {
+      return v === element;
+    });
+  }
 }

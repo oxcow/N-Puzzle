@@ -31,11 +31,12 @@ class PuzzleGame extends React.Component {
     super(props);
     this.state = {
       stepNumber: 0,
-      completed: false,
+      solved: false,
+      martixN: 3,
       history: [
         {
-          puzzles: [1,2,3,4,5,6,7,null,8], // Utils.getSolvablePuzzleNumbers(3),
-          nullIndex: 7,
+          puzzles: Utils.getSolvablePuzzleNumbers(3),
+          nullIndex: 8,
         },
       ],
     };
@@ -60,60 +61,62 @@ class PuzzleGame extends React.Component {
     return puzzles;
   }
 
-  isCompleted(puzzles) {
+  isSolved(puzzles) {
     if (puzzles.includes(null, -1)) {
-      let isCompleted = true;
+      let isSolved = true;
       let baseNumber = puzzles[0];
       for (let i = 1; i < puzzles.length - 1; i++) {
         if (puzzles[i] - baseNumber !== 1) {
-          isCompleted = false;
+          isSolved = false;
           break;
         } else {
           baseNumber = puzzles[i];
         }
       }
-      return isCompleted;
+      return isSolved;
     }
     return false;
   }
 
   handleClick(k, v) {
-    let isCompleted = this.state.completed;
-    if (isCompleted || v === null) {
+    let isSolved = this.state.solved;
+    if (isSolved || v === null) {
       return;
     }
 
     const history = this.state.history.slice(0, this.state.stepNumber + 1);
     const current = history[history.length - 1];
     const currentNullIndex = current.nullIndex;
-    
+
     if (!this.canExchange(currentNullIndex, k)) {
       return;
     }
 
     const puzzles = this.doExchange(current.puzzles.slice(), k, v, currentNullIndex);
 
-    isCompleted = this.isCompleted(puzzles);
+    isSolved = this.isSolved(puzzles);
 
     this.setState({
       history: history.concat([{ puzzles: puzzles, nullIndex: k, }]),
       stepNumber: history.length,
-      completed: isCompleted,
+      solved: isSolved,
     });
   }
 
   jumpTo = step => {
     const curHistory = this.state.history;
-    this.setState({
-      stepNumber: step,
-      completed: false,
-    });
+    const isSovled = this.state.solved;
+    if (!isSovled) {
+      this.setState({
+        stepNumber: step,
+      });
+    }
   }
 
   render() {
     const history = this.state.history;
     const current = history[this.state.stepNumber];
-    const isCompleted = this.state.completed;
+    const isSolved = this.state.solved;
 
     const moves = history.map((step, move) => {
       const desc = move ? "Go to move #" + move : "Go to game start";
@@ -138,8 +141,8 @@ class PuzzleGame extends React.Component {
           />
         </div>
         <div className="puzzle-game-info">
-          {isCompleted && (
-            <div> Completed! </div>
+          {isSolved && (
+            <div> Solved! </div>
           )}
           <ol>{moves}</ol>
         </div>
