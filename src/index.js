@@ -5,7 +5,4 @@ import Tictactoe from './component/Tictactoe';
 import PuzzleGame from './component/NPuzzle';
 
 
-ReactDOM.render([<Tictactoe />, <PuzzleGame/>], document.getElementById("root"));
-
-
-
+ReactDOM.render([<PuzzleGame/>], document.getElementById("root"));

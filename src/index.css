@@ -64,4 +64,10 @@ ul {
 }
 .puzzle-game-info{
   margin-left: 20px;
+  padding-left: 5px;
+  width: 400px;
+  height: 300px;
+  overflow-y: scroll;
+  border: 1px solid pink;
+  
 }

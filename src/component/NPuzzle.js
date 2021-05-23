@@ -31,12 +31,13 @@ class PuzzleGame extends React.Component {
     super(props);
     this.state = {
       stepNumber: 0,
+      completed: false,
       history: [
         {
-          puzzles: Utils.getSolvablePuzzleNumbers(3),
+          puzzles: [1,2,3,4,5,6,7,null,8], // Utils.getSolvablePuzzleNumbers(3),
+          nullIndex: 7,
         },
       ],
-      nullIndex: 8,
     };
   }
 
@@ -77,40 +78,53 @@ class PuzzleGame extends React.Component {
   }
 
   handleClick(k, v) {
-    if (v === null) {
+    let isCompleted = this.state.completed;
+    if (isCompleted || v === null) {
       return;
     }
 
     const history = this.state.history.slice(0, this.state.stepNumber + 1);
     const current = history[history.length - 1];
-    const currentNullIndex = this.state.nullIndex;
-
+    const currentNullIndex = current.nullIndex;
+    
     if (!this.canExchange(currentNullIndex, k)) {
       return;
     }
 
     const puzzles = this.doExchange(current.puzzles.slice(), k, v, currentNullIndex);
 
-    this.setState({
-      history: history.concat([{ puzzles: puzzles }]),
-      stepNumber: history.length,
-      nullIndex: k,
-    });
+    isCompleted = this.isCompleted(puzzles);
 
-    if (this.isCompleted(puzzles)) {
-      alert("completed");
-    }
+    this.setState({
+      history: history.concat([{ puzzles: puzzles, nullIndex: k, }]),
+      stepNumber: history.length,
+      completed: isCompleted,
+    });
+  }
+
+  jumpTo = step => {
+    const curHistory = this.state.history;
+    this.setState({
+      stepNumber: step,
+      completed: false,
+    });
   }
 
   render() {
     const history = this.state.history;
     const current = history[this.state.stepNumber];
+    const isCompleted = this.state.completed;
 
     const moves = history.map((step, move) => {
       const desc = move ? "Go to move #" + move : "Go to game start";
       return (
         <li key={move}>
-          {desc} - {step.puzzles.join(",")}
+          <button
+            onClick={() => this.jumpTo(move)}
+            onTouchEnd={() => this.jumpTo(move)}
+          >
+            {desc} - {step.puzzles.join(",")}
+          </button>
         </li>
       );
     });
@@ -124,6 +138,9 @@ class PuzzleGame extends React.Component {
           />
         </div>
         <div className="puzzle-game-info">
+          {isCompleted && (
+            <div> Completed! </div>
+          )}
           <ol>{moves}</ol>
         </div>
       </div>
